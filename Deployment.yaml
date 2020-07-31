@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Service
+metadata:
+  name: jaeger
+  namespace: observability
+  labels:
+    app: jaeger
+spec:
+  ports:
+  - port: 8080
+    name: http
+  selector:
+    app: jaeger
+    version: v1
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jaeger
+  namespace: observability
+  labels:
+    app: jaeger
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jaeger
+      version: v1
+  template:
+    metadata:
+      labels:
+        apps: jaeger
+        version: v1
+    spec:
+      containers:
+      - name: jaeger
+        image: nmuniz/jaeger:latest
+        imagePullPolicy: IfNotPresent 
+        resources:
+          limits:
+            memory: 2Gi
+            cpu: 1
+          request: 
+            memory: 1Gi
+            cpu: 0.5
+        ports:
+        - containerPort: 8080
+      - name: jaegertracing-all-in-one
+        image: jaegertracing/all-in-one
+        imagePullPolicy: IfNotPresent 
+        resources:
+          limits:
+            memory: 2Gi
+            cpu: 1
+          request: 
+            memory: 1Gi
+            cpu: 0.5
+        ports:
+        - containerPort: 5775
+          protocol: UDP
+        - containerPort: 6831
+          protocol: UDP
+        - containerPort: 6832
+          protocol: UDP
+        - containerPort: 16686
+        - containerPort: 14268
+---
